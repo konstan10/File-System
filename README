@@ -1,0 +1,14 @@
+For make_fs, I made and opened a disk, intialized the superblock, directory, and FAT table, and wrote all that information into the disk. 
+For mount_fs, I opened the disk and copied all the disk info into their respective data structures, and initialized the file descriptor array. 
+For umount_fs, I wrote all of the disk info back into the disk and closed the disk.
+For fs_open, I searched for the file in the directory specified by the given name, gave it a place in the file descriptor array, and incremented the reference count.
+For fs_close, I found the file in the directory referenced by the descriptor, deleted its entry in the file descriptor array, and decremented the reference count.
+For fs_create, I checked for duplicate names and a full directory, and then gave the file a place in one of the empty spots of the directory.
+For fs_delete, I checked for open file descriptors referenced by the given name, and then wrote over all of the file blocks with empty blocks, and removed the directory entry.
+For fs_read, I found the file, read all of its contents into a temporary buffer, copied those contents into the provided buffer starting from the offset, and returned the amount of bytes read.
+For fs_write, I found the amount of blocks currently allocated, calculated how much extra space I would need, adjusted nbyte if needed, and read all of the contents into a temporary buffer if any. I then read the contents of the provided buffer at the offset of the temporary buffer and wrote the contents of that back into the disk.
+get_file_size and list_files were straightforward, just need to index the directory for filesizes/names, for l_seek just find the offset and change it.
+For fs_truncate, I wrote all the contents of the file into a temporary buffer, zeroed the file out, remapped the file allocation table and adjusted the size, then wrote back the contents into the disk.
+
+A problem I had is with a testcase not wanting to pass, opening two file descriptors, closing one, and reading from the other. It turned out that if I were to write to a file using 1 file descriptor and reading from it using another file descriptor, I wouldn't be reading from a new location in the FAT (which it should). I changed file and head to integer pointers, so now it works as file points to an address instead of holding a static value.
+
